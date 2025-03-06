@@ -1,28 +1,26 @@
-from django.db.models import Sum
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.http import HttpResponse
-from rest_framework.views import APIView
-
-from rest_framework import viewsets, permissions
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
 from djoser import views as djoser_views
 from djoser.serializers import SetPasswordSerializer
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .serializers import (
-    UserSerializer, UserCreateSerializer, UserDetailSerializer,
-    UserListSerializer, UserAvatarSerializer, RecipeCreateSerializer,
-    TagSerializer, IngredientSerializer, RecipeListSerializer,
-    SubscriptionSerializer, RecipeSubscriptionSerializer
-)
-from recipes.models import (
-    Recipe, Tag, Ingredient, IngredientInRecipe, Favorite, ShoppingCart
-)
-from users.models import Subscription
-from api.permissions import IsAuthor
 from api.pagination import CustomPagination
+from api.permissions import IsAuthor
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Tag)
+from users.models import Subscription
+
+from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+                          RecipeListSerializer, RecipeSubscriptionSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UserAvatarSerializer, UserCreateSerializer,
+                          UserDetailSerializer, UserListSerializer,
+                          UserSerializer)
 
 User = get_user_model()
 
