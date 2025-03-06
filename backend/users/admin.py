@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 from .models import Subscription
 
-User  = get_user_model()
+User = get_user_model()
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -13,6 +13,7 @@ class UserAdmin(admin.ModelAdmin):
 
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user', 'subscribed_to')
+
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Subscription, SubscriptionAdmin)

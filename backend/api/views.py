@@ -24,7 +24,7 @@ from users.models import Subscription
 from api.permissions import IsAuthor
 from api.pagination import CustomPagination
 
-User  = get_user_model()
+User = get_user_model()
 
 
 class UserViewSet(djoser_views.UserViewSet):
@@ -39,7 +39,7 @@ class UserViewSet(djoser_views.UserViewSet):
         elif self.action in ['me', 'update_avatar']:
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
-    
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             if self.action == 'list':
@@ -56,7 +56,7 @@ class UserViewSet(djoser_views.UserViewSet):
         elif self.request.method in ['PUT', 'PATCH']:
             return UserDetailSerializer
         return UserDetailSerializer
-    
+
     @action(detail=False, methods=['post'], url_path='set_password')
     def change_password(self, request):
 
@@ -73,7 +73,7 @@ class UserViewSet(djoser_views.UserViewSet):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @action(
         detail=False, methods=['get'],
         permission_classes=[permissions.IsAuthenticatedOrReadOnly]
@@ -81,7 +81,7 @@ class UserViewSet(djoser_views.UserViewSet):
     def me(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
-    
+
     @action(
         detail=False, methods=['get'],
         permission_classes=[permissions.IsAuthenticated]
@@ -95,8 +95,10 @@ class UserViewSet(djoser_views.UserViewSet):
         results = []
         for subscription in result_page:
             user_data = SubscriptionSerializer(
-                subscription.subscribed_to, context={'request': request,
-                'recipes_limit': recipes_limit}).data
+                subscription.subscribed_to, context={
+                    'request': request, 'recipes_limit': recipes_limit
+                }
+            ).data
             results.append(user_data)
 
         return paginator.get_paginated_response(results)
@@ -116,7 +118,8 @@ class UserViewSet(djoser_views.UserViewSet):
 
         if request.method == 'POST':
             if Subscription.objects.filter(
-                user=request.user, subscribed_to=user_to_subscribe).exists():
+                user=request.user, subscribed_to=user_to_subscribe
+            ).exists():
                 return Response(
                     {'detail': 'Вы уже подписаны на этого пользователя.'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -126,8 +129,10 @@ class UserViewSet(djoser_views.UserViewSet):
                 user=request.user, subscribed_to=user_to_subscribe)
             recipes_limit = request.query_params.get('recipes_limit', None)
             user_data = SubscriptionSerializer(
-                user_to_subscribe, context={'request': request,
-                'recipes_limit': recipes_limit}).data
+                user_to_subscribe, context={
+                    'request': request, 'recipes_limit': recipes_limit
+                }
+            ).data
             return Response(user_data, status=status.HTTP_201_CREATED)
 
         elif request.method == 'DELETE':
@@ -143,7 +148,7 @@ class UserViewSet(djoser_views.UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
- 
+
 
 class UserAvatarView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -151,14 +156,14 @@ class UserAvatarView(APIView):
     def put(self, request):
         user = request.user
         serializer = UserAvatarSerializer(user, data=request.data)
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response(
                 {"avatar": request.build_absolute_uri(user.avatar.url)},
                 status=status.HTTP_200_OK
             )
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
@@ -172,6 +177,7 @@ class UserAvatarView(APIView):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
@@ -196,7 +202,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         elif self.request.method in ['POST', 'PATCH']:
             return RecipeCreateSerializer
         return RecipeListSerializer
-    
+
     def get_permissions(self):
         if self.action in ['shopping_cart', 'favorite']:
             self.permission_classes = [permissions.IsAuthenticated]
@@ -232,7 +238,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(tags__slug__in=tags).distinct()
 
         return queryset
-    
+
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
         try:
@@ -283,7 +289,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == "POST":
             if ShoppingCart.objects.filter(
-                user=request.user, recipe=recipe).exists():
+                user=request.user, recipe=recipe
+            ).exists():
                 return Response(
                     {"detail": "Рецепт уже есть в списке покупок."},
                     status=status.HTTP_400_BAD_REQUEST
@@ -316,7 +323,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             if Favorite.objects.filter(
-                user=request.user, recipe=recipe).exists():
+                user=request.user,
+                recipe=recipe
+            ).exists():
                 return Response(
                     {"detail": "Recipe already in favorites."},
                     status=status.HTTP_400_BAD_REQUEST

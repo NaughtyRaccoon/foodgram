@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-User  = get_user_model()
+User = get_user_model()
 
 
 class Tag(models.Model):
@@ -66,8 +66,10 @@ class Favorite(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'recipe'],
-            name='unique_user_favorite')
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_favorite'
+            )
         ]
 
     def __str__(self):
@@ -84,8 +86,10 @@ class ShoppingCart(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'recipe'],
-            name='unique_user_shopping_cart')
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_shopping_cart'
+            )
         ]
 
     def __str__(self):

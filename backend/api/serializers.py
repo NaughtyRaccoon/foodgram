@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from recipes.models import Recipe, Ingredient, Tag, IngredientInRecipe
 from users.models import Subscription
 
-User  = get_user_model()
+User = get_user_model()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -58,7 +58,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             return Subscription.objects.filter(
                 user=request.user, subscribed_to=obj).exists()
         return False
-    
+
 
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -86,14 +86,14 @@ class UserListSerializer(serializers.ModelSerializer):
             'id', 'email', 'username',
             'first_name', 'last_name', 'avatar', 'is_subscribed'
         ]
-    
+
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return Subscription.objects.filter(
                 user=request.user, subscribed_to=obj).exists()
         return False
-    
+
     def update(self, instance, validated_data):
         instance.email = validated_data.get('email', instance.email)
         instance.username = validated_data.get('username', instance.username)
@@ -146,7 +146,6 @@ class RecipeListSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = "__all__"
 
-
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredientinrecipe')
         recipe = Recipe.objects.create(**validated_data)
@@ -155,7 +154,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             IngredientInRecipe.objects.create(recipe=recipe, **ingredient_data)
 
         return recipe
-    
+
     def get_is_favorited(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
@@ -176,7 +175,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ['id', 'amount']
-    
+
     def validate_amount(self, value):
         if value <= 0:
             raise serializers.ValidationError(
@@ -195,13 +194,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = "__all__"
-    
+
     def validate_tags(self, value):
         if not value:
             raise serializers.ValidationError(
                 "Поле 'tags' не может быть пустым."
             )
-        
+
         tag_names = [tag.name for tag in value]
         if len(tag_names) != len(set(tag_names)):
             raise serializers.ValidationError("Теги не могут повторяться.")
@@ -209,34 +208,34 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-            ingredients = data.get('ingredients')
-            if not ingredients:
+        ingredients = data.get('ingredients')
+        if not ingredients:
+            raise serializers.ValidationError(
+                "Добавьте хотя бы один ингредиент!"
+            )
+
+        ingredient_ids = []
+        for ingredient in ingredients:
+            if 'id' not in ingredient or 'amount' not in ingredient:
                 raise serializers.ValidationError(
-                    "Добавьте хотя бы один ингредиент!"
+                    "Каждый ингредиент должен содержать 'id' и 'amount'."
                 )
 
-            ingredient_ids = []
-            for ingredient in ingredients:
-                if 'id' not in ingredient or 'amount' not in ingredient:
-                    raise serializers.ValidationError(
-                        "Каждый ингредиент должен содержать 'id' и 'amount'."
-                    )
+            ingredient_ids.append(ingredient['id'])
 
-                ingredient_ids.append(ingredient['id'])
+        if len(ingredient_ids) != len(set(ingredient_ids)):
+            raise serializers.ValidationError(
+                "Рецепт не может включать два одинаковых ингредиента!"
+            )
 
-            if len(ingredient_ids) != len(set(ingredient_ids)):
-                raise serializers.ValidationError(
-                    "Рецепт не может включать два одинаковых ингредиента!"
-                )
+        tags = data.get('tags')
+        if not tags:
+            raise serializers.ValidationError(
+                "Поле 'tags' не может быть пустым."
+            )
 
-            tags = data.get('tags')
-            if not tags:
-                raise serializers.ValidationError(
-                    "Поле 'tags' не может быть пустым."
-                )
+        return data
 
-            return data
-    
     def validate_cooking_time(self, value):
         if value < 1:
             raise serializers.ValidationError(
@@ -320,7 +319,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             return Subscription.objects.filter(
                 user=request.user, subscribed_to=obj).exists()
         return False
-    
+
     def get_recipes(self, obj):
         recipes_limit = self.context.get('recipes_limit', None)
         recipes = Recipe.objects.filter(author=obj)
