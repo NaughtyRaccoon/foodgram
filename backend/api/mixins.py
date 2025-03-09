@@ -15,10 +15,12 @@ class SubscriptionMixin:
 
 class RecipeActionMixin:
     def handle_recipe_action(self, request, recipe, model, action):
-        item = model.objects.filter(user=request.user, recipe=recipe)
+        exists = model.objects.filter(
+            user=request.user, recipe=recipe
+        ).exists()
 
         if action == 'add':
-            if item.exists():
+            if exists:
                 return Response(
                     {"detail": "Рецепт уже есть в списке."},
                     status=status.HTTP_400_BAD_REQUEST
@@ -28,13 +30,12 @@ class RecipeActionMixin:
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         elif action == 'remove':
-            if item.exists():
-                item.delete()
+            if exists:
+                model.objects.filter(user=request.user, recipe=recipe).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(
-                    {"detail": "Рецепт не найден."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(
+                {"detail": "Рецепт не найден."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

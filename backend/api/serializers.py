@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
@@ -200,18 +199,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredient_objects = []
         for ingredient in ingredients:
             amount = ingredient.get("amount")
-            ingredient_id = ingredient.get("id")
-            ingredient_instance = get_object_or_404(
-                Ingredient, pk=ingredient_id.id
-            )
+            ingredient_id = ingredient.get("id").pk
 
             ingredient_objects.append(
                 IngredientInRecipe(
-                    recipe=recipe, ingredient=ingredient_instance,
+                    recipe=recipe, ingredient_id=ingredient_id,
                     amount=amount
                 )
             )
-        return ingredient_objects
+        IngredientInRecipe.objects.bulk_create(ingredient_objects)
 
     def create(self, validated_data):
         author = self.context.get("request").user
@@ -221,8 +217,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags)
 
-        ingredient_objects = self._handle_ingredients(recipe, ingredients)
-        IngredientInRecipe.objects.bulk_create(ingredient_objects)
+        self._handle_ingredients(recipe, ingredients)
 
         return recipe
 
@@ -235,10 +230,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if ingredients is not None:
             instance.ingredients.clear()
 
-            ingredient_objects = self._handle_ingredients(
-                instance, ingredients
-            )
-            IngredientInRecipe.objects.bulk_create(ingredient_objects)
+            self._handle_ingredients(instance, ingredients)
 
         return super().update(instance, validated_data)
 

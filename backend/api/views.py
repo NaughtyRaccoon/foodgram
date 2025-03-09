@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-
 from djoser import views as djoser_views
 from djoser.serializers import SetPasswordSerializer
 from rest_framework import permissions, status, viewsets
